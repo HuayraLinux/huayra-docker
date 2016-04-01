@@ -11,7 +11,7 @@ RUN apt-get update && \
     apt-get -y upgrade && \
     apt-get install -y packaging-dev \
                        piuparts pbuilder \
-                       quilt sudo nano \
+                       quilt nano \
                        libwww-perl git && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
