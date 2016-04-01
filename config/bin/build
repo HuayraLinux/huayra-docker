@@ -1,0 +1,87 @@
+#!/bin/sh
+# usage:
+# $ build pkg-holahuayra
+
+###
+#
+# Variables
+#
+###
+
+PKG=$1;
+[ "$PKG" = "" ] && echo "Repositorio faltante"; exit 1;
+
+
+HOME=/pkg
+REPO_ROOT=${HOME}/repos
+CHROOT_HOME=${HOME}/chroot
+
+PKG_HOME=${REPO_ROOT}/${PKG};
+
+CHROOT_AMD64=huayra-torbellino-amd64.tgz
+CHROOT_I386=huayra-torbellino-i386.tgz
+
+REPO_GITHUB=http://github.com/HuayraLinux/${PKG}
+
+###
+#
+# Funciones
+#
+###
+
+guess_arch(){
+        PKG=$1;
+        CONTROL="${PKG}/debian/control";
+        ARCH=`grep ^Architecture: ${CONTROL}|sed -s 's,Architecture\: ,,'`;
+
+        echo $ARCH;
+}
+
+
+###
+#
+# Entramos al directorio donde clonamos
+#
+###
+
+cd $REPO_ROOT;
+
+
+###
+#
+# Clonamos y ejecutamos `uscan` en caso de tener watchfile.
+#
+###
+
+git clone $REPO_GITHUB;
+
+# si el clon salio OK
+if [ -z "$!" ];
+then
+    cd $PKG_HOME;
+
+    # si tiene watchfile
+    if [ -f "${PKG}/debian/watch" ];
+    then
+        uscan --force-download;
+    fi
+fi
+
+
+###
+#
+# Averiguamos la arquitectura para elegir al chroot correcto
+# y lo ejecutamos.
+#
+###
+
+cd $PKG_HOME;
+
+if[ "`guess_arch $PKG`" = "any" ];
+then
+    pdebuild -- --basetgz ${CHROOT_HOME}/${CHROOT_AMD64};
+else
+    pdebuild -- --basetgz ${CHROOT_HOME}/${CHROOT_AMD64} && \
+    pdebuild -- --basetgz ${CHROOT_HOME}/${CHROOT_I386};
+fi
+
