@@ -26,7 +26,6 @@ COPY ["config/chroot/huayra-torbellino-amd64.tgz", "$HOME/chroot/huayra-torbelli
 COPY ["config/chroot/huayra-torbellino-i386.tgz", "$HOME/chroot/huayra-torbellino-i386.tgz"]
 COPY ["config/bin/build", "$HOME/bin/build"]
 COPY ["config/.pbuilderrc", "$HOME/.pbuilderrc"]
-COPY ["config/.profile", "$HOME/.profile"]
 
 RUN chmod +x $HOME/bin/build
 
