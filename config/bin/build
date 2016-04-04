@@ -11,7 +11,7 @@
 PKG=$1;
 [ "$PKG" = "" ] && echo "Repositorio faltante" && exit 1;
 
-HOME=/tmp/test #/pkg
+HOME=/pkg
 REPO_ROOT=${HOME}/repos
 CHROOT_HOME=${HOME}/chroot
 
