@@ -2,20 +2,28 @@ FROM debian:jessie
 
 MAINTAINER Mauro <mauro@sdf.org>
 
+ENV USER huayra
+ENV UID 1000
+
 ENV HOME /pkg
 ENV PATH $PATH:$HOME/bin
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && \
-    apt-get -y upgrade && \
-    apt-get install -yq packaging-dev \
+RUN apt-get update \
+    && apt-get -y upgrade \
+    && apt-get install -yq packaging-dev \
                         piuparts pbuilder \
                         quilt nano \
                         libwww-perl git \
-    --no-install-recommends && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+                        fakeroot \
+    --no-install-recommends \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -u $UID -m -d $HOME -s /usr/sbin/nologin $USER \
+    && mkdir -p $HOME \
+    && chown -Rh $USER:$USER -- $HOME
 
 RUN mkdir -p $HOME/chroot \
     && mkdir -p $HOME/build \
