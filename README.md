@@ -9,8 +9,11 @@ Esto es un **Work In Progress** y esta publicado `AS IS`, por lo que probablemen
 	$ cd huayra-docker
 	$ docker build -t huayra-docker .
 
-	$ docker run -ti --rm huayra-docker
+	$ docker run -ti --rm --privileged huayra-docker
 	% build pkg-holahuayra
 
-	$ docker run -ti --rm huayra-docker sh -c "build pkg-holahuayra"
+	$ docker run -ti --rm --privileged huayra-docker sh -c "build pkg-holahuayra"
 
+
+Note: El flag `--privileged` es necesario porque que al ejecutar `pbuilder` va a necesitar acceso a ciertos `devices` y Docker por defecto no brinda esos permisos.  
+Quizas lo mas prolijo sea utilizar `--devices` y listar los necesarios pero mientras tanto, `--privileged`.
