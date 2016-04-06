@@ -1,6 +1,6 @@
 #!/bin/sh
 # usage:
-# $ build pkg-holahuayra
+# $ hpkg pkg-holahuayra clone build
 
 ###
 #
@@ -32,6 +32,12 @@ PDEBUILD="${PDEBUILD} --pbuildersatisfydepends /usr/lib/pbuilder/pbuilder-satisf
 ###
 
 git_clone(){
+###
+#
+# Clonamos y ejecutamos `uscan` en caso de tener watchfile.
+#
+###
+
     git clone $REPO_GITHUB;
 
     # si el clon salio OK
@@ -56,6 +62,13 @@ guess_arch(){
 }
 
 run_pdebuild(){
+###
+#
+# Averiguamos la arquitectura para elegir al chroot correcto
+# y lo ejecutamos.
+#
+###
+
     if [ "`guess_arch $PKG`" = "any" ];
     then
         # echo $PWD;
@@ -76,19 +89,8 @@ run_pdebuild(){
 
 cd $REPO_ROOT;
 
-###
-#
-# Clonamos y ejecutamos `uscan` en caso de tener watchfile.
-#
-###
-
-git_clone;
-
-###
-#
-# Averiguamos la arquitectura para elegir al chroot correcto
-# y lo ejecutamos.
-#
-###
-
-run_pdebuild
+for param in "$@";
+do
+    [ "$param" = "clone" ] && git_clone;
+    [ "$param" = "build" ] && run_pdebuild;
+done
