@@ -23,8 +23,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -u $UID -m -d $HOME -s /usr/sbin/nologin $USER \
-    && adduser $USER $SUDOGRP \
-    && mkdir -p $HOME \
+    && adduser $USER $SUDOGRP
+
+RUN mkdir -p $HOME \
     && mkdir -p $HOME/chroot \
     && mkdir -p $HOME/build \
     && mkdir -p $HOME/result \
