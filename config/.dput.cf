@@ -1,0 +1,6 @@
+[huayra]
+fqdn = devel.huayra.conectarigualdad.gob.ar
+method = scp
+login = repo
+incoming = /srv/repo/incoming/
+
