@@ -20,12 +20,10 @@ RUN apt-get update \
                         fakeroot \
     --no-install-recommends \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN useradd -u $UID -m -d $HOME -s /usr/sbin/nologin $USER \
-    && adduser $USER $SUDOGRP
-
-RUN mkdir -p $HOME \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -u $UID -m -d $HOME -s /usr/sbin/nologin $USER \
+    && adduser $USER $SUDOGRP \
+    && mkdir -p $HOME \
     && mkdir -p $HOME/chroot \
     && mkdir -p $HOME/build \
     && mkdir -p $HOME/result \
@@ -34,10 +32,10 @@ RUN mkdir -p $HOME \
 
 COPY ["config/sources.list.d/huayra.list", "/etc/apt/sources.list.d/huayra.list"]
 COPY ["config/sudoers.d/pbuilder", "/etc/sudoers.d/pbuilder"]
+COPY ["config/.pbuilderrc", "$HOME/.pbuilderrc"]
+COPY ["config/bin/hpkg", "$HOME/bin/hpkg"]
 COPY ["config/chroot/huayra-torbellino-amd64.tgz", "$HOME/chroot/huayra-torbellino-amd64.tgz"]
 COPY ["config/chroot/huayra-torbellino-i386.tgz", "$HOME/chroot/huayra-torbellino-i386.tgz"]
-COPY ["config/bin/build", "$HOME/bin/build"]
-COPY ["config/.pbuilderrc", "$HOME/.pbuilderrc"]
 
 RUN chmod +x $HOME/bin/build \
     && chown -Rh $USER:$USER -- $HOME
