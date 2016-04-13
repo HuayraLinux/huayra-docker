@@ -37,7 +37,7 @@ COPY ["config/bin/hpkg", "$HOME/bin/hpkg"]
 COPY ["config/chroot/huayra-torbellino-amd64.tgz", "$HOME/chroot/huayra-torbellino-amd64.tgz"]
 COPY ["config/chroot/huayra-torbellino-i386.tgz", "$HOME/chroot/huayra-torbellino-i386.tgz"]
 
-RUN chmod +x $HOME/bin/build \
+RUN chmod +x $HOME/bin/hpkg \
     && chown -Rh $USER:$USER -- $HOME
 
 USER $USER
