@@ -11,7 +11,7 @@ Esto es un **Work In Progress** y esta publicado `AS IS`, por lo que probablemen
         [...]
 	$ docker run -ti --rm --privileged huayra-docker
 	% hpkg pkg-holahuayra clone build
-        $ docker cp fancy_name:/pkg/result/ .
+	$ docker cp fancy_name:/pkg/result/ .
 
 
 Note: El flag [`--privileged`](https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities) es necesario porque que al ejecutar `pbuilder` va a necesitar acceso a ciertos `devices` y Docker por defecto no brinda esos permisos.  
