@@ -34,10 +34,12 @@ COPY ["config/sources.list.d/huayra.list", "/etc/apt/sources.list.d/huayra.list"
 COPY ["config/sudoers.d/pbuilder", "/etc/sudoers.d/pbuilder"]
 COPY ["config/.pbuilderrc", "$HOME/.pbuilderrc"]
 COPY ["config/bin/hpkg", "$HOME/bin/hpkg"]
+COPY ["config/bin/hpkg-buildpackage", "$HOME/bin/hpkg-buildpackage"]
 COPY ["config/chroot/huayra-torbellino-amd64.tgz", "$HOME/chroot/huayra-torbellino-amd64.tgz"]
 COPY ["config/chroot/huayra-torbellino-i386.tgz", "$HOME/chroot/huayra-torbellino-i386.tgz"]
 
 RUN chmod +x $HOME/bin/hpkg \
+    && chmod +x $HOME/bin/hpkg-buildpackage \
     && chown -Rh $USER:$USER -- $HOME
 
 USER $USER

@@ -10,7 +10,7 @@ Esto es un **Work In Progress** y esta publicado `AS IS`, por lo que probablemen
 	$ docker build -t huayra-docker .
         [...]
 	$ docker run -ti --rm --privileged huayra-docker
-	% hpkg pkg-holahuayra clone build
+	% hpkg-buildpackage pkg-holahuayra
 	$ docker cp fancy_name:/pkg/result/ .
 
 
