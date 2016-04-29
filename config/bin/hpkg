@@ -93,4 +93,5 @@ for param in "$@";
 do
     [ "$param" = "clone" ] && git_clone;
     [ "$param" = "build" ] && run_pdebuild;
+    [ "$param" = "all" ] && git_clone && run_pdebuild;
 done
