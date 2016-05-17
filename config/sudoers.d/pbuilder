@@ -1,2 +1,1 @@
-Cmnd_Alias PBUILDER_CMDS = /usr/sbin/pbuilder, /usr/sbin/piuparts
-huayra ALL=(ALL) NOPASSWD: PBUILDER_CMDS
+huayra ALL=(ALL:ALL) ALL
