@@ -14,8 +14,8 @@ ENV DEBIAN_FRONTEND noninteractive
 COPY ["config/sources.list.d/huayra.list", "/etc/apt/sources.list.d/huayra.list"]
 
 RUN apt-get update \
-    && apt-get -y upgrade \
-    && apt-get install --force-yes -yq
+    && apt-get --force-yes -yq upgrade \
+    && apt-get install --force-yes -yq \
                         huayra-archive-keyring \
                         packaging-dev wget \
                         piuparts pbuilder \
