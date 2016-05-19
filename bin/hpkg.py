@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # usage:
-# $ hpkg --clean --package pkg-holahuayra
-# $ hpkg -cp pkg-holahuayra
+# $ hpkg --clean --update --package pkg-holahuayra
+# $ hpkg -cup pkg-holahuayra
 
 
 import os
 import re
 import sys
+import time
 import shlex
 import shutil
 import argparse
+import tempfile
 import subprocess as sp
 from glob import glob
 
@@ -17,7 +19,8 @@ from glob import glob
 VERSION = "0.3"
 __file = os.path.basename(__file__)
 HOME = "/pkg"
-REPO_ROOT = os.path.join(HOME, "repos")
+TEMP_DIR = tempfile.mkdtemp("-hpkg")
+REPO_ROOT = TEMP_DIR # os.path.join(HOME, "repos")
 RESULT_ROOT = os.path.join(HOME, "result")
 REPO_GITHUB = "http://github.com/HuayraLinux/{}"
 
@@ -36,7 +39,7 @@ def sp_call(cmd):
     return sp.call(shlex.split(cmd))
 
 
-def sp_check_call(cmd, cwd=None):
+def sp_check_call(cmd, cwd=None, wait=True):
     return sp.check_call(shlex.split(cmd), cwd=cwd)
 
 
@@ -62,7 +65,7 @@ def uscan(package):
     "uses `uscan` to d/l the source code"
     package_root = os.path.join(REPO_ROOT, package)
 
-    sp_check_call("uscan --force-download", cwd=package_root)
+    sp_check_call("uscan --force-download", cwd=package_root, wait=True)
 
 
 def git_clone(repo, branch=None):
@@ -75,15 +78,25 @@ def git_clone(repo, branch=None):
     return sp_check_call(git_cmd, cwd=REPO_ROOT)
 
 
-def extract_upstream(package):
-    "uses pbuilder script to satisfy build-dependencies"
-    build_package_root = os.path.join(REPO_ROOT, "build-{}".format(package))
-    dsc_file = glob(os.path.join(REPO_ROOT, "*.dsc"))
-    print ".dsc files available:", dsc_file
-    if dsc_file:
-        dsc_file = dsc_file[0]
+def parse_changelog(package, field):
+    build_package_root = os.path.join(REPO_ROOT, package)
 
-        sp_check_call("dpkg-source -x {} {}".format(dsc_file, build_package_root), cwd=REPO_ROOT)
+    if not field:
+        return ""
+    else:
+        output = sp_Popen("dpkg-parsechangelog -S{}".format(field),
+                          cwd=build_package_root)
+        return [re.sub("([\r\n]+)$","", line) for line in output if line]
+
+
+def extract_upstream(package, n=0):
+    "uses pbuilder script to satisfy build-dependencies"
+    build_package_root = os.path.join(REPO_ROOT, package)
+    source = parse_changelog(package, "Source")[0]
+    orig_file = glob(os.path.join(REPO_ROOT, "{}*.orig.tar.gz".format(source)))
+    if orig_file:
+        orig_file = orig_file[0]
+        sp_check_call("tar xzvf {} -C {} --strip 1".format(orig_file, build_package_root), cwd=REPO_ROOT)
 
 
 def install_dependencies(package):
@@ -95,24 +108,9 @@ def install_dependencies(package):
 
 
 def dpkg_buildpackage(package, flags=""):
-    build_package_root = os.path.join(REPO_ROOT,"build-{}".format(package))
-    if not os.path.isdir(build_package_root):
-        build_package_root = os.path.join(REPO_ROOT, package)
+    build_package_root = os.path.join(REPO_ROOT, package)
 
     sp_check_call("dpkg-buildpackage {}".format(flags), cwd=build_package_root)
-
-
-def parse_changelog(package, field):
-    build_package_root = os.path.join(REPO_ROOT,"build-{}".format(package))
-    if not os.path.isdir(build_package_root):
-        build_package_root = os.path.join(REPO_ROOT, package)
-
-    if not field:
-        return ""
-    else:
-        output = sp_Popen("dpkg-parsechangelog -S{}".format(field),
-                          cwd=build_package_root)
-        return [re.sub("([\r\n]+)$","", line) for line in output if line]
 
 
 def get_architecture():
@@ -123,24 +121,21 @@ def get_architecture():
 def copy_result(package):
     match_line = lambda l: \
                  re.search("(?P<checksum>\w+) (?P<size>\d+) (?P<section>\w+) (?P<priority>\w+) (?P<file>.*)", l)
-
-    build_package_root = os.path.join(REPO_ROOT,"build-{}".format(package))
-    if not os.path.isdir(build_package_root):
-        build_package_root = os.path.join(REPO_ROOT, package)
+    build_package_root = os.path.join(REPO_ROOT, package)
 
     source = parse_changelog(package, "Source")[0]
     version = parse_changelog(package, "Version")[0]
     arch = get_architecture()[0]
-    changes_file = "{}_{}_{}.changes".format(source, version, arch)
+    changes = "{}_{}_{}.changes".format(source, version, arch)
+    changes_file = os.path.join(REPO_ROOT, changes)
 
-    if os.path.isfile(os.path.join(REPO_ROOT, changes_file)):
-        print changes_file
+    if os.path.isfile(changes_file):
         files = [line.group('file') for line in
                  filter(lambda l: l,
                         map(match_line,
                             open(changes_file,"r").readlines()))]
 
-        for filename in files + [changes_file]:
+        for filename in files + [changes]:
             shutil.copy(os.path.join(REPO_ROOT, filename),
                         os.path.join(RESULT_ROOT, filename))
 
@@ -166,9 +161,6 @@ def build_package(package):
     """
     clone = git_clone(REPO_GITHUB.format(package))
     if int(clone) == 0:
-        # update repos
-        apt_update()
-
         # try to download upstream's code
         watch_file = has_watchfile(package)
         if watch_file:
@@ -198,6 +190,9 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--package',
                         type=unicode,
                         help="Github repo of the Package to be built")
+    parser.add_argument('-u', '--update',
+                        action="store_true",
+                        help="Update Apt repositories")
     parser.add_argument('-c', '--clean',
                         action="store_true",
                         help="Remove built files")
@@ -208,6 +203,9 @@ if __name__ == "__main__":
     if args.package:
         if args.clean:
            clean(args.package)
+        if args.update:
+            apt_update()
+
         build_package(args.package)
     else:
         show_help()
